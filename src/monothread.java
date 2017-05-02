@@ -5,21 +5,22 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 class monothread{
-
-	public static void main(String args[]) throws IOException {	
-		
-		// read the infomation from the file "input.txt as an array into data[]"
-		String data = null;
+	// read from the file into the string array data
+	// put all the informations into a TreeMap structure named tmap
+	String data = null;
+	TreeMap<String, Integer> tmap = new TreeMap<String, Integer>();
+	
+	// read the infomation from the file "input.txt as an array into data[]"
+	public void read_file(String file_name){
 		try {
-			Path path = Paths.get("defense.txt");
-			byte[] row_data = Files.readAllBytes(path);
+			byte[] row_data = Files.readAllBytes(Paths.get(file_name));
 			data = new String(row_data);
 			} catch (IOException e) {
 				System.out.println(e);
-		    }
-
-		// put all the informations into a TreeMap structure named tmap
-		TreeMap<String, Integer> tmap = new TreeMap<String, Integer>();
+		    }	
+	}
+	
+	public void split(){
 		// use the function string.split to split the string using the symbols [' ' \n , ; . ' " ( ) .- : \t]
 		// if there is no this element (use the name as the key), we add to the tmap
 		// if not, we update the the value (+1)
@@ -37,20 +38,10 @@ class monothread{
 	    		tmap.put(retval, count + 1);	    	
 	    	} 
 	    }
+	}
+	
+	public void print_result(String file_name){
 	    
-	    /*
-	    //result by default order: asc by key
-	    // get a set of the entries for tmap and get an iterator
-        Set<Entry<String, Integer>> set = tmap.entrySet();
-        Iterator<Entry<String, Integer>> i = set.iterator();
-        // print the result
-        while(i.hasNext()) {
-           Entry<String, Integer> me = i.next();
-           System.out.print(me.getKey() + ": ");
-           System.out.println(me.getValue());
-        }
-	    */
-        
 	    // result by user-defined order: desc by value and asc by key
         // define a list to store the all entries
         List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String,Integer>>(tmap.entrySet());
@@ -76,6 +67,19 @@ class monothread{
             System.out.println(mapping.getKey()+":"+mapping.getValue()); 
             write_data.add(mapping.getKey()+":"+mapping.getValue());
         } 
-        Files.write(Paths.get("output.txt"), write_data);
+        
+        try {
+			Files.write(Paths.get(file_name + "_output.txt"), write_data);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	public static void main(String args[]) {	
+		monothread MyMonothread = new monothread();
+		// the input args[0] will be the name of source file
+		MyMonothread.read_file(args[0]);
+		MyMonothread.split();
+		MyMonothread.print_result(args[0]);
 	}
 }
