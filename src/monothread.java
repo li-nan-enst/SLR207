@@ -41,9 +41,8 @@ class monothread{
 	}
 	
 	public void print_result(String file_name){
-	    
-	    // result by user-defined order: desc by value and asc by key
-        // define a list to store the all entries
+		// result by user-defined order: desc by value and asc by key
+		// define a list to store the all entries
         List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String,Integer>>(tmap.entrySet());
         // redefine the sort method (asc by key)
         Collections.sort(list,new Comparator<Map.Entry<String,Integer>>() {
