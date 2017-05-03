@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -77,10 +78,11 @@ class monothread{
         		"lesquels", "desquels", "auxquels", "lesquelles", "desquelles", "auxquelles",
         		"mais", "ou", "et", "donc", "or", "ni", "car",
         		"ne", "eux", "aux", "à", "au", "de", "↬", "a", "ce",
-        		"en", "des", "du", "d", "se", "qu"));
+        		"en", "des", "du", "d", "se", "qu",
+        		"est", "sont", "pour", "dans", "son", "par", "avec", "sur", "ces", "cette", "être", "après"));
         List<String> write_data = new ArrayList<String>();
         for(Map.Entry<String,Integer> mapping:list){ 
-            System.out.println(mapping.getKey()+":"+mapping.getValue()); 
+            // System.out.println(mapping.getKey()+":"+mapping.getValue()); 
             // select top50
             if (counter < 50) {
             	// filter the pron. and conj.
@@ -92,7 +94,7 @@ class monothread{
         } 
         
         try {
-			Files.write(Paths.get(file_name + "_output.txt"), write_data);
+			Files.write(Paths.get(file_name + "_output.txt"), write_data, Charset.forName("UTF-8"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}	
@@ -100,9 +102,25 @@ class monothread{
 	
 	public static void main(String args[]) {	
 		monothread MyMonothread = new monothread();
+		long startTime = System.currentTimeMillis();
+		
 		// the input args[0] will be the name of source file
 		MyMonothread.read_file(args[0]);
+		long timePoint1 = System.currentTimeMillis();
+		System.out.print("Time for reading the file(s):");
+		System.out.println((timePoint1 - startTime)/1000.);
+
 		MyMonothread.split();
+		long timePoint2 = System.currentTimeMillis();
+		System.out.print("Time for spliting and counting(s):");
+		System.out.println((timePoint2 - timePoint1)/1000.);
+		
 		MyMonothread.print_result(args[0]);
+		long endTime   = System.currentTimeMillis();
+		System.out.print("Time for ordering and printing(s):");
+		System.out.println((endTime - timePoint2)/1000.);
+		
+		System.out.print("Total time(s):");
+		System.out.println((endTime - startTime)/1000.);
 	}
 }
