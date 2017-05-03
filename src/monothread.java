@@ -76,16 +76,15 @@ class monothread{
         		"lequel", "laquelle", "duquel", "auquel",
         		"lesquels", "desquels", "auxquels", "lesquelles", "desquelles", "auxquelles",
         		"mais", "ou", "et", "donc", "or", "ni", "car",
-        		"ne", "Le", "La", "L", "Lui", "Les", "Leur", "eux",
-        		"aux", "à", "au", "de", "↬", "a", "ce",
-        		"en", "DE", "DES", "DU", "d", "du", "se", "Il", "Elle", "qu", "ET", "LA"));
+        		"ne", "eux", "aux", "à", "au", "de", "↬", "a", "ce",
+        		"en", "des", "du", "d", "se", "qu"));
         List<String> write_data = new ArrayList<String>();
         for(Map.Entry<String,Integer> mapping:list){ 
             System.out.println(mapping.getKey()+":"+mapping.getValue()); 
             // select top50
             if (counter < 50) {
             	// filter the pron. and conj.
-            	if (!ignore_list.contains(mapping.getKey())) {
+            	if (!ignore_list.contains(mapping.getKey().toLowerCase())) {
                 	write_data.add(mapping.getKey()+":"+mapping.getValue());
                 	counter++;
             	}
