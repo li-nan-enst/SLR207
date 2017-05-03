@@ -63,10 +63,33 @@ class monothread{
 			}
         });
         // print the result
+        int counter = 0;
+        List<String> ignore_list = new ArrayList<String>(Arrays.asList("je", "tu", "il", "elle", 
+        		"nous", "vous", "ils", "elles", "le", "la", "l", "lui", "les", "leur", "eux", "des",
+        		"celui", "celle", "celui-ci", "celui-là", "celle-ci", "celle-là", "ceci", "cela", "ça",
+        		"ceux", "ceux-ci", "ceux-là", "celles-ci", "celles-là",
+        		"mien", "tien", "sien", "nôtre", "vôtre", "mienne", "tienne", "sienne", 
+        		"miens", "tiens", "siens", "nôtres", "vôtres", "leurs", "miennes", "tiennes", "siennes", 
+        		"on", "personne", "rien", "aucun", "aucune", "nul", "nule", "un", "une", "autre", "ni", "pas", "tout", "quelqu", "quelque",
+        		"certains", "certaines", "plusieurs", "tous", "autres",
+        		"qui", "que", "quoi", "dont", "où",
+        		"lequel", "laquelle", "duquel", "auquel",
+        		"lesquels", "desquels", "auxquels", "lesquelles", "desquelles", "auxquelles",
+        		"mais", "ou", "et", "donc", "or", "ni", "car",
+        		"ne", "Le", "La", "L", "Lui", "Les", "Leur", "eux",
+        		"aux", "à", "au", "de", "↬", "a", "ce",
+        		"en", "DE", "DES", "DU", "d", "du", "se", "Il", "Elle", "qu", "ET", "LA"));
         List<String> write_data = new ArrayList<String>();
         for(Map.Entry<String,Integer> mapping:list){ 
             System.out.println(mapping.getKey()+":"+mapping.getValue()); 
-            write_data.add(mapping.getKey()+":"+mapping.getValue());
+            // select top50
+            if (counter < 50) {
+            	// filter the pron. and conj.
+            	if (!ignore_list.contains(mapping.getKey())) {
+                	write_data.add(mapping.getKey()+":"+mapping.getValue());
+                	counter++;
+            	}
+            }     
         } 
         
         try {
