@@ -1,0 +1,6 @@
+Q14 :
+cat /proc/cpuinfo | grep processor | wc -l
+In the class of school, it is 4.
+
+Q15 :
+

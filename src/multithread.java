@@ -4,12 +4,16 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.concurrent.*;
 
-class monothread{
+class multithread{
+	
+	public final static int THREAD_POOL_SIZE = 3;
+	
 	// read from the file into the string array data
-	// put all the informations into a TreeMap structure named tmap
+	// put all the informations into a TreeMap structure named chm
 	String data = null;
-	TreeMap<String, Integer> tmap = new TreeMap<String, Integer>();
+	ConcurrentHashMap<String, Integer> chm = new ConcurrentHashMap<String, Integer>();
 	
 	// read the information from the file "input.txt as an array into data[]"
 	public void read_file(String file_name){
@@ -21,23 +25,39 @@ class monothread{
 		    }	
 	}
 	
-	public void split(){
-				
+	public void split(int index){
+		
+		int beginIndex = 0;
+		int endIndex = 0;
+		String tmp_data = null;
+		
+		System.out.println(data);
+		System.out.println(index);
+		
+		beginIndex = data.length()/THREAD_POOL_SIZE*index;
+		
+		if (index != THREAD_POOL_SIZE) endIndex = data.length()/THREAD_POOL_SIZE*(index+1);
+		else endIndex = data.length();
+		
+		ConcurrentHashMap<String, Integer> tmp_chm = new ConcurrentHashMap<String, Integer>();
+		
+		tmp_data = data.substring(beginIndex, endIndex);
+		
 		// use the function string.split to split the string using the symbols [' ' \n , ; . ' " ( ) .- : \t]
-		// if there is no this element (use the name as the key), we add to the tmap
+		// if there is no this element (use the name as the key), we add to the tmp_chm
 		// if not, we update the the value (+1)
-	    for (String retval: data.split("\n| |,|;|\'|\"|\\.|\\)|\\(|[.-]|:")) {
+	    for (String retval: tmp_data.split("\n| |,|;|\'|\"|\\.|\\)|\\(|[.-]|:")) {
 	    	// don not take blank line into consideration
 	    	if (Pattern.matches("^( )*", retval)) continue;
-	    	if (!tmap.containsKey(retval)){
+	    	if (!tmp_chm.containsKey(retval)){
 	    		// test for the correctness
 	    		// System.out.println("not containsKey: "+retval);
-	    		tmap.put(retval, 1);	
+	    		tmp_chm.put(retval, 1);	
 	    	} else {
 	    		// test for the correctness
 	    		// System.out.println("containsKey: "+retval);
-	    		int count = tmap.get(retval);
-	    		tmap.put(retval, count + 1);	    	
+	    		int count = tmp_chm.get(retval);
+	    		tmp_chm.put(retval, count + 1);	    	
 	    	} 
 	    }
 	}
@@ -46,7 +66,7 @@ class monothread{
 		
 		// result by user-defined order: desc by value and asc by key
 		// define a list to store the all entries
-        List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String,Integer>>(tmap.entrySet());
+        List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String,Integer>>(chm.entrySet());
         
         // redefine the sort method (asc by key)
         Collections.sort(list,new Comparator<Map.Entry<String,Integer>>() {
@@ -101,22 +121,48 @@ class monothread{
 		}	
 	}
 	
+	public static class MyRunnable implements Runnable {
+		private final int index;
+		
+		MyRunnable(int index) {
+			this.index = index;
+		}
+ 
+		@Override
+		public void run() {
+ 
+			try {
+				//split(index);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
 	public static void main(String args[]) {	
-		monothread MyMonothread = new monothread();
+		multithread MyMultithread = new multithread();
 		long startTime = System.currentTimeMillis();
 		
 		// the input args[0] will be the name of source file
-		MyMonothread.read_file(args[0]);
+		MyMultithread.read_file(args[0]);
 		long timePoint1 = System.currentTimeMillis();
 		System.out.print("Time for reading the file(s):");
 		System.out.println((timePoint1 - startTime)/1000.);
 
-		MyMonothread.split();
+		// assign the tasks
+		ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+		for(int i = 0; i<THREAD_POOL_SIZE; i++) {
+			Runnable worker = new MyRunnable(i);
+			executor.execute(worker);
+		}
+		executor.shutdown();
+		
 		long timePoint2 = System.currentTimeMillis();
 		System.out.print("Time for spliting and counting(s):");
 		System.out.println((timePoint2 - timePoint1)/1000.);
 		
-		MyMonothread.print_result(args[0]);
+		MyMultithread.print_result(args[0]);
 		long endTime   = System.currentTimeMillis();
 		System.out.print("Time for ordering and printing(s):");
 		System.out.println((endTime - timePoint2)/1000.);
