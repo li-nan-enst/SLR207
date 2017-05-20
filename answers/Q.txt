@@ -1,6 +1,36 @@
+Q13:
+Time for reading the file(s):2.866
+Time for spliting and counting(s):472.51
+Time for ordering and printing(s):1.589
+Total time(s):476.965
+
 Q14 :
 cat /proc/cpuinfo | grep processor | wc -l
 In the class of school, it is 4.
 
-Q15 :
+Q15/16 :
+c.f. : ../reference/ref.md
 
+Q17:
+
+Q18-22:
+$ hostname
+$ hostname -i
+$ hostname -d
+$ hostname -s
+ref: https://www.tutorialspoint.com/unix_commands/hostname.htm
+host + hostname -> IP
+host + ip -> hostname(internet)
+nmblookup -A + ip -> hostname(local)
+
+Q23:
+ping 137.194.34.18
+
+Q24:
+echo 2+3 | bc
+echo $((2+3)) 
+
+Q25: 
+ssh -X nali@a405-03 echo 1+2 | bc
+
+Q26:
