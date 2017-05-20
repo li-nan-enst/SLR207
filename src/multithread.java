@@ -8,8 +8,9 @@ import java.util.concurrent.*;
 
 class multithread{
 	
-	public final static int THREAD_POOL_SIZE = 3;
-	
+	public final static int THREAD_POOL_SIZE = 30;
+	public static multithread MyMultithread = new multithread();
+
 	// read from the file into the string array data
 	// put all the informations into a TreeMap structure named chm
 	String data = null;
@@ -31,7 +32,7 @@ class multithread{
 		int endIndex = 0;
 		String tmp_data = null;
 		
-		System.out.println(data);
+		//System.out.println(data);
 		System.out.println(index);
 		
 		beginIndex = data.length()/THREAD_POOL_SIZE*index;
@@ -39,9 +40,11 @@ class multithread{
 		if (index != THREAD_POOL_SIZE) endIndex = data.length()/THREAD_POOL_SIZE*(index+1);
 		else endIndex = data.length();
 		
-		ConcurrentHashMap<String, Integer> tmp_chm = new ConcurrentHashMap<String, Integer>();
+		//ConcurrentHashMap<String, Integer> tmp_chm = new ConcurrentHashMap<String, Integer>();
 		
 		tmp_data = data.substring(beginIndex, endIndex);
+		// System.out.println(data.length());
+		// System.out.println(tmp_data.length());
 		
 		// use the function string.split to split the string using the symbols [' ' \n , ; . ' " ( ) .- : \t]
 		// if there is no this element (use the name as the key), we add to the tmp_chm
@@ -49,15 +52,15 @@ class multithread{
 	    for (String retval: tmp_data.split("\n| |,|;|\'|\"|\\.|\\)|\\(|[.-]|:")) {
 	    	// don not take blank line into consideration
 	    	if (Pattern.matches("^( )*", retval)) continue;
-	    	if (!tmp_chm.containsKey(retval)){
+	    	if (!chm.containsKey(retval)){
 	    		// test for the correctness
 	    		// System.out.println("not containsKey: "+retval);
-	    		tmp_chm.put(retval, 1);	
+	    		chm.put(retval, 1);	
 	    	} else {
 	    		// test for the correctness
 	    		// System.out.println("containsKey: "+retval);
-	    		int count = tmp_chm.get(retval);
-	    		tmp_chm.put(retval, count + 1);	    	
+	    		int count = chm.get(retval);
+	    		chm.put(retval, count + 1);	    	
 	    	} 
 	    }
 	}
@@ -122,7 +125,7 @@ class multithread{
 	}
 	
 	public static class MyRunnable implements Runnable {
-		private final int index;
+		private int index;
 		
 		MyRunnable(int index) {
 			this.index = index;
@@ -132,7 +135,7 @@ class multithread{
 		public void run() {
  
 			try {
-				//split(index);
+				MyMultithread.split(index);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -141,7 +144,6 @@ class multithread{
 	}
 	
 	public static void main(String args[]) {	
-		multithread MyMultithread = new multithread();
 		long startTime = System.currentTimeMillis();
 		
 		// the input args[0] will be the name of source file
@@ -157,6 +159,14 @@ class multithread{
 			executor.execute(worker);
 		}
 		executor.shutdown();
+		
+		try {
+			while (!executor.awaitTermination(10, TimeUnit.MICROSECONDS));  
+		}
+        catch (InterruptedException e)  
+        {  
+            e.printStackTrace();  
+        }  
 		
 		long timePoint2 = System.currentTimeMillis();
 		System.out.print("Time for spliting and counting(s):");
