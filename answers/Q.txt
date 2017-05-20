@@ -34,3 +34,18 @@ Q25:
 ssh -X nali@a405-03 echo 1+2 | bc
 
 Q26:
+ref: http://www.linuxproblem.org/art_9.html
+a@A:~> ssh-keygen -t rsa
+a@A:~> ssh b@B mkdir -p .ssh
+a@A:~> cat .ssh/id_rsa.pub | ssh b@B 'cat >> .ssh/authorized_keys'
+a@A:~> ssh b@B
+
+Q27: 
+/cal/homes/nali
+
+Q28:
+find . -name foo
+
+Q29:
+realpath ftemp.txt    
+
