@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 class multithread{
 	
-	public final static int THREAD_POOL_SIZE = 4;
+	public final static int THREAD_POOL_SIZE = 100;
 	public static multithread MyMultithread = new multithread();
 
 	// read from the file into the string array data
