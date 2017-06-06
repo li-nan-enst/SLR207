@@ -1,17 +1,23 @@
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class MASTER {
 
 	public static void main(String args[]) throws IOException {
 		
-		String [] command = {"java", "-jar", "/tmp/slave.jar"};
+        String [] command = {"java", "-jar", "/tmp/slave.jar"};
+        ProcessBuilder pb = new ProcessBuilder(command);
+        Process process = pb.start();
 		
-		ProcessBuilder pb = new ProcessBuilder(command);
-		Process process = pb.start();
+        BlockingQueue<Process> processQueue = new ArrayBlockingQueue<Process>(1);
+        processQueue.add(process);
+
+        // ref. : http://www.xyzws.com/javafaq/how-to-run-external-programs-by-using-java-processbuilder-class/189
 		
-		// ref. : http://www.xyzws.com/javafaq/how-to-run-external-programs-by-using-java-processbuilder-class/189
-		
+        //-------------------------------------------------------------------------------------//
         // Read out dir output
         InputStream is = process.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
@@ -29,10 +35,12 @@ public class MASTER {
         BufferedReader brerr = new BufferedReader(iserrr);
         
         String lineerr;
-        System.out.printf("Output of error of running %s is:\n", Arrays.toString(command));
-        while ((lineerr = brerr.readLine()) != null) {
-            System.out.println(lineerr);
-        }       
+        if(brerr.readLine() != null) {
+	        System.out.printf("Output of error of running %s is:\n", Arrays.toString(command));
+	        while ((lineerr = brerr.readLine()) != null) {
+	            System.out.println(lineerr);
+	        }       
+        }
         
         // Wait to get exit value
         try {
@@ -41,6 +49,16 @@ public class MASTER {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        //-------------------------------------------------------------------------------------//
+
+        
+        Process a = null;
+		try {
+			a = processQueue.poll(2, TimeUnit.SECONDS);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+        if (a == null) System.err.println("more than 2 secs");
 	}
 	
 }
