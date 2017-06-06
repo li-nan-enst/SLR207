@@ -1,3 +1,8 @@
+NOTE : 
+It is intresting that I find my mistaken of "not-atomic opeartion" by add and move the phrase of printing.
+It is "// System.out.println(tmp_data);" in the multithread.java.
+It takes the time to run this sentense, so after I add it, it works well because the concurrence has been avoided. 
+
 Q13:
 Para:-Xmx8G
 Time for reading the file(s):5.118

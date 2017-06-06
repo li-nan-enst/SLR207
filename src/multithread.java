@@ -6,16 +6,17 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.concurrent.*;
 
-class multithread{
+
+class multithread {
 	
-	public final static int THREAD_POOL_SIZE = 100;
+	public final static int THREAD_POOL_SIZE = 1;
 	public static multithread MyMultithread = new multithread();
 
 	// read from the file into the string array data
 	// put all the informations into a TreeMap structure named chm
 	String data = null;
 	ConcurrentHashMap<String, Integer> chm = new ConcurrentHashMap<String, Integer>();
-	
+
 	// read the information from the file "input.txt as an array into data[]"
 	public void read_file(String file_name){
 		try {
@@ -26,45 +27,61 @@ class multithread{
 		    }	
 	}
 	
-	public void split(int index){
-		
+	public void split(int index) {
+				
 		int beginIndex = 0;
 		int endIndex = 0;
 		String tmp_data = null;
 		
-		//System.out.println(data);
+		System.out.println("index : ");
 		System.out.println(index);
 		
-		beginIndex = data.length()/THREAD_POOL_SIZE*index;
+		beginIndex = (data.length()/THREAD_POOL_SIZE)*index;
 		
-		if (index != THREAD_POOL_SIZE) endIndex = data.length()/THREAD_POOL_SIZE*(index+1);
+		if (index != THREAD_POOL_SIZE) {
+			endIndex = (data.length()/THREAD_POOL_SIZE)*(index+1);
+			System.out.println(beginIndex+1);
+			System.out.println(endIndex);
+		}
 		else endIndex = data.length();
 		
 		//ConcurrentHashMap<String, Integer> tmp_chm = new ConcurrentHashMap<String, Integer>();
 		
 		tmp_data = data.substring(beginIndex, endIndex);
+		// tmp_data = data;
+		// System.out.println(tmp_data);
 		// System.out.println(data.length());
 		// System.out.println(tmp_data.length());
 		
 		// use the function string.split to split the string using the symbols [' ' \n , ; . ' " ( ) .- : \t]
 		// if there is no this element (use the name as the key), we add to the tmp_chm
 		// if not, we update the the value (+1)
-	    for (String retval: tmp_data.split("\n| |,|;|\'|\"|\\.|\\)|\\(|[.-]|:")) {
-	    	// don not take blank line into consideration
-	    	if (Pattern.matches("^( )*", retval)) continue;
-	    	if (!chm.containsKey(retval)){
-	    		// test for the correctness
-	    		// System.out.println("not containsKey: "+retval);
-	    		chm.put(retval, 1);	
-	    	} else {
-	    		// test for the correctness
-	    		// System.out.println("containsKey: "+retval);
-	    		int count = chm.get(retval);
-	    		chm.put(retval, count + 1);	    	
-	    	} 
-	    }
+		
+		// the increment of "for (String seg: tmp_data.split("\n"))" make it faster !!!!! (from 135s to 43s for 5threads)
+		for (String seg: tmp_data.split("\n")) {
+		    for (String retval: seg.split("\n| |,|;|\'|\"|\\.|\\)|\\(|[.-]|:")) {
+		    	// don not take blank line into consideration
+		    	if (Pattern.matches("^( )*", retval)) continue;
+		    	if (!chm.containsKey(retval)){
+		    		// test for the correctness
+		    		// System.out.println("not containsKey: "+retval);
+		    		chm.put(retval, 1);	
+		    	} else {
+		    		// test for the correctness
+		    		// System.out.println("containsKey: "+retval);
+		    		synchronized (chm){
+		    			int count = chm.get(retval);
+		    			count += 1;
+		    			chm.put(retval, count);	
+		    		}
+		    		
+		    		// chm.get(retval).incrementAndGet();
+		    		// chm.put(retval, chm.get(retval) + 1);	  
+		    	} 
+		    }
+		}
 	}
-	
+
 	public void print_result(String file_name){
 		
 		// result by user-defined order: desc by value and asc by key
@@ -84,7 +101,7 @@ class multithread{
 
 			@Override
 			public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
-				return o2.getValue().compareTo(o1.getValue());
+				return o2.getValue().compareTo((o1.getValue()));
 			}
         });
         // print the result
@@ -161,7 +178,7 @@ class multithread{
 		executor.shutdown();
 		
 		try {
-			while (!executor.awaitTermination(10, TimeUnit.MICROSECONDS));  
+			while (!executor.awaitTermination(10, TimeUnit.SECONDS));  
 		}
         catch (InterruptedException e)  
         {  
