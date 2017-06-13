@@ -8,7 +8,7 @@ public class MASTER {
 
 	public static void main(String args[]) throws IOException {
 		
-        String [] command = {"java", "-jar", "/tmp/slave.jar"};
+        String [] command = {"java", "-jar", "slave.jar"};
         ProcessBuilder pb = new ProcessBuilder(command);
         Process process = pb.start();
 		
@@ -59,6 +59,9 @@ public class MASTER {
 			e1.printStackTrace();
 		}
         if (a == null) System.err.println("more than 2 secs");
+        else {
+        	System.err.println(a);
+        }
 	}
 	
 }
