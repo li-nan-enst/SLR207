@@ -10,7 +10,7 @@ public class Master
   {
 	final ArrayBlockingQueue<String> InputQueue = new ArrayBlockingQueue<String>(1024);
 	
-	String[] cmd = { "java", "-jar", "/tmp/slave.jar" };
+	String[] cmd = { "java", "-jar", "/tmp/Slave.jar" };
 	ProcessBuilder process = new ProcessBuilder(cmd);
 	
 	Process p = process.start();
@@ -51,7 +51,7 @@ public class Master
 	final ArrayBlockingQueue<String> ErrorQueue = new ArrayBlockingQueue<String>(1024);
 
 	
-	final InputStream src_err = p.getInputStream();
+	final InputStream src_err = p.getErrorStream();
 	final PrintStream dest_err = System.out;
 	
 	Thread ErrorStreamThread = new Thread(
