@@ -1,11 +1,14 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
 
 public class Master {
+	
+	static int node_need_num = 3;
 	
 	public static Master MasterImpl = new Master();
 	public static deploy deployImpl = new deploy();
@@ -27,10 +30,18 @@ public class Master {
 		// Create the list "clés - UMx" ()
 		Master.create_map_between_Key_UMx();
 		
+		// Wait the end of SplingMapping
+		Master.SplingMappingEtat();
+		
+	}
+	
+	public static void SplingMappingEtat() {
+		if (deployImpl.SMEtat()) System.out.println("SplitingMapping has finished!");
+		else System.out.println("SplitingMapping has not finished yet!");
 	}
 	
 	public static void copySlits() throws NumberFormatException, IOException {
-		int node_need_num = 3;
+		
 		List<String> list = new ArrayList<String>();
 		
 		for(int i = 0; i < node_need_num; i ++) {
@@ -54,9 +65,26 @@ public class Master {
 	}
 
 	public static void create_map_between_Key_UMx() {
-		keys = deployImpl.get_keys();
-        for(String key : keys) {
-        	System.out.println("Keys are: " + key);
+		keys = deployImpl.get_inputStream();
+        for(String keyset : keys) {
+        	
+        	String UMx = keyset.split(":")[0]; 
+        	String key = keyset.split(":")[1]; 
+        	UMx = Integer.toString(Integer.parseInt(UMx) + 1);
+        	
+        	List<String> UMx_list;
+        	if (map_between_Key_UMx.get(key) != null)  {
+        		UMx_list =  new ArrayList<String>(map_between_Key_UMx.get(key));
+        		UMx_list.add(UMx);
+        	} else {
+        		UMx_list =  Arrays.asList(UMx);
+        	}
+        	
+        	map_between_Key_UMx.put(key, UMx_list);
+        }
+        
+        for(Entry<String, List<String>> element : map_between_Key_UMx.entrySet()) {
+        	System.out.println(element.getKey() + " - UM" + element.getValue());
         }
 	}
 }

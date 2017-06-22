@@ -32,21 +32,31 @@ public class deploy {
 	
 	List<String> node_list = new ArrayList<String>();
 	
-	List<String> key_list = new ArrayList<String>();
+	List<String> info_list = new ArrayList<String>();
+		
+	boolean flag[] =new boolean[100];
 	
 	//public static void main(String args[]) throws IOException {
 	public List<String> run(int node_need_num, List<String> args) throws NumberFormatException, IOException {
 		MyDeploy.read_file("pc_name.txt");		
 		MyDeploy.set_cmd(args);
-		MyDeploy.execute(node_need_num, node_list, key_list);  
+		MyDeploy.execute(node_need_num, node_list, info_list);  
 		
-        System.out.println(key_list.toString());
+        System.out.println(info_list.toString());
         
 		return node_list;
 	}
 	
-	public List<String> get_keys() {
-		return key_list;
+	public List<String> get_inputStream() {
+		return info_list;
+	}
+	
+	public boolean SMEtat(){
+		boolean etat = true;
+		for(int i=0; i < node_num; i++) {
+			etat = etat & flag[i];
+		}
+		return etat;
 	}
 	
 	public void execute(int node_need_num, List<String> node_list, List<String> info_list) throws IOException {	
@@ -68,6 +78,7 @@ public class deploy {
 		
 		// execute all the rest cmds
 		int machine_order = 0;
+		flag[machine_order] = false;
 		for(int node_index = 0; node_index<node_num; node_index++) { 
 			if (!black_list.contains(node_index) && white_list.contains(node_index)) {
 				node_list.add(cmd_data[node_index][1][machine_order]);
@@ -95,13 +106,18 @@ public class deploy {
 					System.err.println("Error @ " + cmd_data[node_index][1][machine_order] + ": " + line + "\n"+cmd_list);
 				else System.out.println("Task @ " + cmd_data[node_index][1][machine_order] + " success !: " + cmd_list);
 				
+				int cmpt = 0;
 				while ((line = InfoReader.readLine())!= null) {
-					info_list.add(line);
+					if (cmpt == 0 ) cmpt++;
+					else info_list.add(machine_order+":"+line);
 				}
 				
+				flag[machine_order] = true;
 				machine_order ++;
 			}
+			
 		}
+		
 	}
 	
 	// response info for the test of connection

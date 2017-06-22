@@ -10,17 +10,17 @@ import java.util.regex.Pattern;
 
 public class Slave {
 	
-	static Slave MapImpl = new Slave();
+	static Slave SlaveImpl = new Slave();
 	String data = null;
 	TreeMap<String, Integer> tmap = new TreeMap<String, Integer>();
 	
 	public static void main(String[] args) throws Exception {
 		
-		MapImpl.read_file_and_split(args[0], args[1]);
-		MapImpl.show_map_between_Key_UMx();
-
+		SlaveImpl.read_file_and_split(args[0], args[1]);
+		SlaveImpl.show_map_between_Key_UMx();
 	}
 	
+
 	public void show_map_between_Key_UMx() {
 		for (Entry<String, Integer> element : tmap.entrySet()) {
 		    System.out.println(element.getKey());
