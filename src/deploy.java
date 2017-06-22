@@ -32,16 +32,24 @@ public class deploy {
 	
 	List<String> node_list = new ArrayList<String>();
 	
+	List<String> key_list = new ArrayList<String>();
+	
 	//public static void main(String args[]) throws IOException {
 	public List<String> run(int node_need_num, List<String> args) throws NumberFormatException, IOException {
 		MyDeploy.read_file("pc_name.txt");		
 		MyDeploy.set_cmd(args);
-		MyDeploy.execute(node_need_num, node_list);
+		MyDeploy.execute(node_need_num, node_list, key_list);  
+		
+        System.out.println(key_list.toString());
         
 		return node_list;
 	}
 	
-	public void execute(int node_need_num, List<String> node_list) throws IOException {	
+	public List<String> get_keys() {
+		return key_list;
+	}
+	
+	public void execute(int node_need_num, List<String> node_list, List<String> info_list) throws IOException {	
 				
 		// test whether the nodes could be connected
 		for(int node_index = 0; node_index<node_num; node_index++) {
@@ -76,12 +84,20 @@ public class deploy {
 				p[node_index] = process.start();
 				
 				InputStream ErrStream = p[node_index].getErrorStream();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(ErrStream));
+				BufferedReader ErrReader = new BufferedReader(new InputStreamReader(ErrStream));
+				InputStream InfoStream = p[node_index].getInputStream();
+				BufferedReader InfoReader = new BufferedReader(new InputStreamReader(InfoStream));
+
 				String line = null;
 				
 				// if there is no err info, it is successful, if not, we give the err tips
-				if ((line = reader.readLine())!= null ) System.err.println(line + "\n"+cmd_list);
+				if ((line = ErrReader.readLine())!= null ) 
+					System.err.println("Error @ " + cmd_data[node_index][1][machine_order] + ": " + line + "\n"+cmd_list);
 				else System.out.println("Task @ " + cmd_data[node_index][1][machine_order] + " success !: " + cmd_list);
+				
+				while ((line = InfoReader.readLine())!= null) {
+					info_list.add(line);
+				}
 				
 				machine_order ++;
 			}
