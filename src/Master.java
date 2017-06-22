@@ -1,85 +1,37 @@
 import java.io.*;
-import java.util.concurrent.*;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Master
-{
-  public Master() {}
-  
-  public static void main(String[] paramArrayOfString) throws IOException
-  {
-	final ArrayBlockingQueue<String> InputQueue = new ArrayBlockingQueue<String>(1024);
+public class Master {
 	
-	String[] cmd = { "java", "-jar", "/tmp/Slave.jar" };
-	ProcessBuilder process = new ProcessBuilder(cmd);
+	public static Master MasterImpl = new Master();
+	public static deploy deployImpl = new deploy();
 	
-	Process p = process.start();
+	public static List<String> machines = new ArrayList<String>();
 	
-	/*
-	final InputStream src = p.getInputStream();
-	final PrintStream dest = System.out;
-	
-	Thread InputStreamThread = new Thread(
-			new Runnable() {
-		        public void run() {		     	
-					
-		            Scanner sc = new Scanner(src);
-		            
-		            while (sc.hasNextLine()) {
-		            	String h = sc.nextLine();
-		                dest.println(h);
-						InputQueue.add(h);
-		            }
-		            
-		            sc.close();
-		        }
-	    	});
-	
-	InputStreamThread.start();
-	
-	try
-	{
-	  if (InputQueue.poll(2, TimeUnit.SECONDS) == null) {
-	    System.err.println("timeout(2s)");
-	    InputStreamThread.stop();
-	  }
-	} catch (InterruptedException e) {
-	  e.printStackTrace();
+	public static void main(String[] paramArrayOfString) throws IOException {
+		
+		// copy S1, S2, S3 to /tmp/nali/splits/
+		Master.copySlits(); 
+		// every slave do the "mapping" 
+		// give the list "UMx - machines" for knowing Sx - UMx (1 - 1)
+		// show the key value
+		// show the list "clés - UMx" ()
+		
 	}
-	*/
 	
-	final ArrayBlockingQueue<String> ErrorQueue = new ArrayBlockingQueue<String>(1024);
+	public static void copySlits() throws NumberFormatException, IOException {
+		int node_need_num = 3;
+		List<String> list = new ArrayList<String>();
+		
+		for(int i = 0; i < node_need_num; i ++) {
+			list.add("mkdir -p /tmp/nali/splits/; cp -n /cal/homes/nali/workspace/P4/SLR207/S" + i + ".txt /tmp/nali/splits/");
+		}
+		
+		machines = deployImpl.run(node_need_num, list);
+        for(String machine : machines) {
+            System.out.println("work on the machine: "+machine);
+        }
+	}
 
-	
-	final InputStream src_err = p.getErrorStream();
-	final PrintStream dest_err = System.out;
-	
-	Thread ErrorStreamThread = new Thread(
-			new Runnable() {
-		        public void run() {		     	
-					
-		            Scanner sc_err = new Scanner(src_err);
-		            
-		            while (sc_err.hasNextLine()) {
-		            	String h = sc_err.nextLine();
-		            	dest_err.println(h);
-		            	ErrorQueue.add(h);
-		            }
-		            
-		            sc_err.close();		    
-		        }
-	    	});
-	
-	ErrorStreamThread.start();
-	
-	try
-	{
-	  if (ErrorQueue.poll(2, TimeUnit.SECONDS) == null) {
-	    System.err.println("timeout(2s)");
-	    p.destroy();
-	  }
-	} catch (InterruptedException e) {
-	  e.printStackTrace();
-	}
-  }
 }
