@@ -31,13 +31,15 @@ public class Master {
 		Master.create_map_between_Key_UMx();
 		
 		// Wait the end of SplingMapping
-		Master.SplingMappingEtat();
+		Master.SplingMappingEtat(node_need_num);
 		
 	}
 	
-	public static void SplingMappingEtat() {
-		if (deployImpl.SMEtat()) System.out.println("SplitingMapping has finished!");
-		else System.out.println("SplitingMapping has not finished yet!");
+	public static void SplingMappingEtat(int node_need_num) {
+		if (deployImpl.SMEtat(node_need_num)) System.out.println("SplitingMapping has finished!");
+		else {
+			System.err.println("SplitingMapping has not finished yet!");
+		}
 	}
 	
 	public static void copySlits() throws NumberFormatException, IOException {
@@ -48,7 +50,7 @@ public class Master {
 			list.add("mkdir -p /tmp/nali/splits/; cp /cal/homes/nali/workspace/P4/SLR207/S" + i + ".txt /tmp/nali/splits/;" 
 					+ "cd /tmp/nali/splits/;"
 					+ "cp /cal/homes/nali/workspace/P4/SLR207/src/Slave.jar /tmp/nali/;"
-					+ "java -jar /tmp/nali/Slave.jar '/cal/homes/nali/workspace/P4/SLR207/S" + i + ".txt' " + " 'UM" + i + ".txt' ");
+					+ "java -jar /tmp/nali/Slave.jar 0 '/cal/homes/nali/workspace/P4/SLR207/S" + i + ".txt' " + " 'UM" + i + ".txt' ");
 		}
 		
 		machines = deployImpl.run(node_need_num, list);

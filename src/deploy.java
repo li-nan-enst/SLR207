@@ -30,17 +30,22 @@ public class deploy {
 	List<Integer> white_list = new ArrayList<Integer>();
 	int valid_node_num = 0;
 	
-	List<String> node_list = new ArrayList<String>();
+	// add "static" could make sure that we don't transfer these paras as follow:
+	// 		MyDeploy.execute(node_need_num, node_list, node_index_list, info_list);  
+	static List<String> node_list = new ArrayList<String>();
 	
-	List<String> info_list = new ArrayList<String>();
+	static List<String> node_index_list = new ArrayList<String>();
+	
+	static List<String> info_list = new ArrayList<String>();
 		
-	boolean flag[] =new boolean[100];
+	static boolean flag[] =new boolean[100];
 	
 	//public static void main(String args[]) throws IOException {
 	public List<String> run(int node_need_num, List<String> args) throws NumberFormatException, IOException {
 		MyDeploy.read_file("pc_name.txt");		
 		MyDeploy.set_cmd(args);
-		MyDeploy.execute(node_need_num, node_list, info_list);  
+		
+		MyDeploy.execute(node_need_num);  
 		
         System.out.println(info_list.toString());
         
@@ -51,15 +56,22 @@ public class deploy {
 		return info_list;
 	}
 	
-	public boolean SMEtat(){
+	public boolean SMEtat(int node_need_num){
 		boolean etat = true;
-		for(int i=0; i < node_num; i++) {
-			etat = etat & flag[i];
+		
+		if ( node_list.size() < node_need_num ) {
+			etat =false;
+		} else {
+			for (String node: node_index_list) {
+				etat &= flag[Integer.parseInt(node)];
+				//System.out.println(etat+" "+node_need_num+" "+node_list.size()+" "+flag[Integer.parseInt(node)]+ " "+Integer.parseInt(node));
+			}
 		}
+
 		return etat;
 	}
 	
-	public void execute(int node_need_num, List<String> node_list, List<String> info_list) throws IOException {	
+	public void execute(int node_need_num) throws IOException {	
 				
 		// test whether the nodes could be connected
 		for(int node_index = 0; node_index<node_num; node_index++) {
@@ -82,6 +94,7 @@ public class deploy {
 		for(int node_index = 0; node_index<node_num; node_index++) { 
 			if (!black_list.contains(node_index) && white_list.contains(node_index)) {
 				node_list.add(cmd_data[node_index][1][machine_order]);
+				node_index_list.add(Integer.toString(node_index));
 				
 				p[node_index].destroy();
 							
@@ -118,6 +131,13 @@ public class deploy {
 			
 		}
 		
+		if ( node_list.size()<node_need_num )
+			try {
+				throw new InterruptedException("The available node is not enough!");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
 	}
 	
 	// response info for the test of connection

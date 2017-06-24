@@ -15,11 +15,75 @@ public class Slave {
 	TreeMap<String, Integer> tmap = new TreeMap<String, Integer>();
 	
 	public static void main(String[] args) throws Exception {
-		
-		SlaveImpl.read_file_and_split(args[0], args[1]);
-		SlaveImpl.show_map_between_Key_UMx();
+				
+		if (args[0].equals("0")) {
+			
+			SlaveImpl.read_file_and_split(args[1], args[2]);
+			SlaveImpl.show_map_between_Key_UMx();
+			
+		} else if (args[0].equals("1")) {
+						
+			List<String> args_list = new ArrayList<String>();
+			
+			for(int i=2; i<args.length; i++) {
+				args_list.add(args[i]);
+			}
+						
+			SlaveImpl.shuffle(args[1], args_list);
+			SlaveImpl.reduce(args[1], "SM1.txt");
+		}		
 	}
 	
+	public void reduce(String key, String input_file_name) {
+		String data = null;
+		
+		try {
+			byte[] row_data = Files.readAllBytes(Paths.get(input_file_name));
+			data = new String(row_data);				
+		} catch (IOException e) {
+			System.out.println(e);
+		}	
+		
+		String[] lines = data.split("\r\n|\r|\n");
+		List<String> write_data = new ArrayList<String>();
+		write_data.add(key + " " + Integer.toString(lines.length));
+		
+		try {
+			Files.write(Paths.get("RM1.txt"), write_data, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+	}
+	
+	public void shuffle(String key, List<String> args_list) {
+		
+		List<String> write_data = new ArrayList<String>();
+		
+		for(String input_file_name : args_list) {
+			
+			String data = null;
+			
+			try {
+				byte[] row_data = Files.readAllBytes(Paths.get(input_file_name));
+				data = new String(row_data);				
+			} catch (IOException e) {
+				System.out.println(e);
+			}
+			
+			for (String retval: data.split("\n| ")) {
+				if (key.compareTo(retval) == 0) {
+					write_data.add(key + " 1");
+				}
+			}
+		}
+			    
+	    try {
+			Files.write(Paths.get("SM1.txt"), write_data, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+	
+	}
 
 	public void show_map_between_Key_UMx() {
 		for (Entry<String, Integer> element : tmap.entrySet()) {
