@@ -30,10 +30,9 @@ __Master__ does the summary.
 
 ## Requirement and instructions: 
 
+(by prof of SLR207 - Remi Sharrock @Télécom ParisTech)
 https://goo.gl/R5jM3C
 
 ## Reference: 
 
 http://ercoppa.github.io/HadoopInternals/HadoopArchitectureOverview.html
-
-Intresting pictures:
