@@ -18,27 +18,27 @@ public class Slave {
 				
 		if (args[0].equals("0")) {
 			
-			SlaveImpl.read_file_and_split(args[1], args[2]);
+			SlaveImpl.read_file_and_split_and_map(args[1], args[2]);
 			SlaveImpl.show_map_between_Key_UMx();
 			
 		} else if (args[0].equals("1")) {
 						
 			List<String> args_list = new ArrayList<String>();
 			
-			for(int i=2; i<args.length; i++) {
+			for(int i=3; i<args.length; i++) {
 				args_list.add(args[i]);
 			}
 						
-			SlaveImpl.shuffle(args[1], args_list);
-			SlaveImpl.reduce(args[1], "SM1.txt");
+			SlaveImpl.shuffle(args[1], args_list, Integer.parseInt(args[2]));
+			SlaveImpl.reduce(args[1],  Integer.parseInt(args[2]));
 		}		
 	}
 	
-	public void reduce(String key, String input_file_name) {
+	public void reduce(String key, int InputNameIdx) {
 		String data = null;
 		
 		try {
-			byte[] row_data = Files.readAllBytes(Paths.get(input_file_name));
+			byte[] row_data = Files.readAllBytes(Paths.get("/tmp/nali/maps/SM"+InputNameIdx+".txt"));
 			data = new String(row_data);				
 		} catch (IOException e) {
 			System.out.println(e);
@@ -49,13 +49,13 @@ public class Slave {
 		write_data.add(key + " " + Integer.toString(lines.length));
 		
 		try {
-			Files.write(Paths.get("RM1.txt"), write_data, Charset.forName("UTF-8"));
+			Files.write(Paths.get("/tmp/nali/maps/RM"+InputNameIdx + ".txt"), write_data, Charset.forName("UTF-8"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
 	}
 	
-	public void shuffle(String key, List<String> args_list) {
+	public void shuffle(String key, List<String> args_list, int OutputNameIdx) {
 		
 		List<String> write_data = new ArrayList<String>();
 		
@@ -78,7 +78,7 @@ public class Slave {
 		}
 			    
 	    try {
-			Files.write(Paths.get("SM1.txt"), write_data, Charset.forName("UTF-8"));
+			Files.write(Paths.get("/tmp/nali/maps/SM"+OutputNameIdx+".txt"), write_data, Charset.forName("UTF-8"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
@@ -92,7 +92,7 @@ public class Slave {
 	}
 	
 	// read the information from the file "input.txt as an array into data[]"
-	public void read_file_and_split(String input_file_name, String output_file_name){
+	public void read_file_and_split_and_map(String input_file_name, String output_file_name){
 		
 		try {
 			byte[] row_data = Files.readAllBytes(Paths.get(input_file_name));

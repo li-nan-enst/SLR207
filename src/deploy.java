@@ -64,7 +64,7 @@ public class deploy {
 		} else {
 			for (String node: node_index_list) {
 				etat &= flag[Integer.parseInt(node)];
-				//System.out.println(etat+" "+node_need_num+" "+node_list.size()+" "+flag[Integer.parseInt(node)]+ " "+Integer.parseInt(node));
+				// System.out.println(etat+" "+node_need_num+" "+node_list.size()+" "+flag[Integer.parseInt(node)]+ " "+Integer.parseInt(node));
 			}
 		}
 
