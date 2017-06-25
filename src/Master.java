@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 public class Master {
@@ -77,10 +79,11 @@ public class Master {
 				System.err.println("Copy /splits/UMx to /maps/  @Master - Error: " + line + "\n"+copy_cmd);
 			else System.out.println("Copy /splits/UMx to /maps/  @Master - Success !: " + copy_cmd);
 		 }
-			
+		
+		 Map<String, List<String>> treeMap = new TreeMap<String, List<String>>(map_between_Key_UMx);
 		 // RUN SlaveImpl.shuffle/reduce
-		 for(Entry<String, List<String>> element : map_between_Key_UMx.entrySet()) {
-			
+		 for(Entry<String, List<String>> element : treeMap.entrySet()) {
+						 
 			partitionIdx = (element.getKey().hashCode() & Integer.MAX_VALUE) % element.getValue().size();
 			partition_node_name = map_between_UMx_Machine.get("UM" + element.getValue().get(partitionIdx));
 		
@@ -137,10 +140,10 @@ public class Master {
 			try {
 				byte[] row_data = Files.readAllBytes(Paths.get("RM"+i+".txt"));
 				String data = new String(row_data);		
-				write_data.add(data);
+				write_data.add((data.split("\r|\n|\t"))[0]);
 			} catch (IOException e) {
 				System.out.println(e);
-			}
+			}	
 			
 			try {
 				Files.write(Paths.get("Fin.txt"), write_data, Charset.forName("UTF-8"));
