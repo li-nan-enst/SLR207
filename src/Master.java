@@ -1,4 +1,7 @@
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,6 +18,7 @@ public class Master {
 	
 	public static HashMap<String, String> map_between_UMx_Machine = new HashMap<String, String>();
 	public static HashMap<String, List<String>> map_between_Key_UMx = new HashMap<String, List<String>>();
+	public static HashMap<String, String> map_between_RMx_Machine = new HashMap<String, String>();
 
 	public static List<String> machines = new ArrayList<String>();
 	public static List<String> keys = new ArrayList<String>();
@@ -87,6 +91,8 @@ public class Master {
 			sr_cmd = cmdSetting("ssh nali@" + partition_node_name + " cd /tmp/nali/; java -jar Slave.jar 1 "
 							+ element.getKey()+ " " + SM_RM_Idx_cmpt);
 			
+			map_between_RMx_Machine.put(Integer.toString(SM_RM_Idx_cmpt), partition_node_name);
+			
 			SM_RM_Idx_cmpt++;
 			
 			for(String related_node: element.getValue()) {
@@ -105,9 +111,43 @@ public class Master {
 				System.err.println("Shuffle/reduce @Slave " + partition_node_name + " - Error: " + sr_line + "\n"+sr_cmd);
 			else System.out.println("Shuffle/reduce  @Slave " + partition_node_name + " - Success !: " + sr_cmd);
 			
-			// Final step: do the summary! 
 	     }
+		 
+		// Final step: do the summary! 
+		List<String> write_data = new ArrayList<String>();
+		
+		for(int i=0; i<SM_RM_Idx_cmpt; i++) {
+			
+			List<String> sum_cmd = new ArrayList<String>();
+			sum_cmd = cmdSetting("scp nali@" + map_between_RMx_Machine.get(Integer.toString(i)) 
+							+ ":/tmp/nali/maps/RM" + i + ".txt .");	
+			
+			ProcessBuilder sum_process = new ProcessBuilder(sum_cmd);
+			Process sum_p = sum_process.start();
+			
+			InputStream sum_ErrStream = sum_p.getErrorStream();
+			BufferedReader sum_ErrReader = new BufferedReader(new InputStreamReader(sum_ErrStream));
+
+			String sr_line = null;
+			
+			if ((sr_line = sum_ErrReader.readLine())!= null ) 
+				System.err.println("FinCopy @Master - Error: " + sr_line + "\n"+sum_cmd);
+			else System.out.println("FinCopy @Master - Success !: " + sum_cmd);
 				
+			try {
+				byte[] row_data = Files.readAllBytes(Paths.get("RM"+i+".txt"));
+				String data = new String(row_data);		
+				write_data.add(data);
+			} catch (IOException e) {
+				System.out.println(e);
+			}
+			
+			try {
+				Files.write(Paths.get("Fin.txt"), write_data, Charset.forName("UTF-8"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public static List<String> cmdSetting(String inputCmd) {
