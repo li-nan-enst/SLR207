@@ -47,7 +47,7 @@ public class deploy {
 		
 		MyDeploy.execute(node_need_num);  
 		
-        System.out.println(info_list.toString());
+        // System.out.println(info_list.toString());
         
 		return node_list;
 	}
@@ -117,7 +117,7 @@ public class deploy {
 				// if there is no err info, it is successful, if not, we give the err tips
 				if ((line = ErrReader.readLine())!= null ) 
 					System.err.println("Error @ " + cmd_data[node_index][1][machine_order] + ": " + line + "\n"+cmd_list);
-				else System.out.println("Task @ " + cmd_data[node_index][1][machine_order] + " success !: " + cmd_list);
+				else System.out.println("Initialisation @ " + cmd_data[node_index][1][machine_order] + " success !: " + cmd_list);
 				
 				int cmpt = 0;
 				while ((line = InfoReader.readLine())!= null) {

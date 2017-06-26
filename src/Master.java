@@ -29,13 +29,13 @@ public class Master {
 	public static void main(String[] paramArrayOfString) throws IOException {
 		
 		// Split big data into node_need_num segmentations 
-		Master.split("in.txt");
+		Master.split("input.txt");
 		
 		// Copy S1, S2, S3 to /tmp/nali/splits/
 		Master.CopySlplittingMappint(); 
 		
 		// Show the map "UMx - machines" for knowing Sx - UMx (1 - 1)
-		Master.show_map_between_UMx_Machine();
+		// Master.show_map_between_UMx_Machine();
 		
 		// Create the list "clés - UMx" ()
 		Master.create_map_between_Key_UMx();
@@ -63,7 +63,6 @@ public class Master {
 		
 		int n_cmpt = 0;
 		int[] n_containor = new int[data.length()];
-		String out_data = null;
 		int last_index = -1;
 		int current_index = 0;
 				
@@ -86,7 +85,7 @@ public class Master {
 			}
 			else endIndex = n_containor[n_cmpt];
 						
-			System.out.println("=== "+beginIndex+"---"+endIndex);
+			System.out.println("Split index: "+beginIndex+"---"+endIndex);
 
 			String flit_data = data.substring(beginIndex, endIndex);
 			
@@ -107,8 +106,8 @@ public class Master {
 		List<String> list = new ArrayList<String>();
 		
 		for(int i = 0; i < node_need_num; i ++) {
-			list.add("rm -rf /tmp/nali/*;"
-					+ "mkdir -p /tmp/nali/;"
+			list.add("rm -rf /tmp/nali/*; "
+					+ "mkdir -p /tmp/nali/;" 
 					+ "mkdir -p /tmp/nali/splits/; cp /cal/homes/nali/workspace/P4/SLR207/S" + i + ".txt /tmp/nali/splits/;" 
 					+ "cp /cal/homes/nali/workspace/P4/SLR207/src/Slave.jar /tmp/nali/;"
 					+ "mkdir -p /tmp/nali/maps/;"
@@ -146,9 +145,11 @@ public class Master {
         	map_between_Key_UMx.put(key, UMx_list);
         }
         
-        for(Entry<String, List<String>> element : map_between_Key_UMx.entrySet()) {
+    /*  
+     * for(Entry<String, List<String>> element : map_between_Key_UMx.entrySet()) {
         	System.out.println(element.getKey() + " - UM" + element.getValue());
         }
+     */
 	}
 	
 	public static void SplingMappingEtat(int node_need_num) {
@@ -160,71 +161,79 @@ public class Master {
 	
 	public static void ShufflingReducing() throws IOException {
 		
+		System.out.println("ShufflingReducing starts...");
+
 		int partitionIdx;
 		String partition_node_name;
 		
+		List<String> copy_cmd = new ArrayList<String>();
+
 		for(Entry<String, List<String>> element : map_between_Key_UMx.entrySet()) {
 				 
 			partitionIdx = (element.getKey().hashCode() & Integer.MAX_VALUE) % element.getValue().size();
 			
 			partition_node_name = map_between_UMx_Machine.get("UM" + element.getValue().get(partitionIdx));
 		
-			System.out.println("For this key - " + element.getKey() + "\t - we use - " 
-				+ partition_node_name + " to do ShufflingReducing");
+			// System.out.println("For this key - " + element.getKey() + "\t - we use - " + partition_node_name + " to do ShufflingReducing");
 			
 			// COPY UMx TO @ partition_node_name
-			List<String> copy_cmd = new ArrayList<String>();
-			copy_cmd = cmdSetting("ssh nali@" + partition_node_name + " mkdir -p /tmp/nali/maps/;");
+			copy_cmd.addAll(cmdSetting("ssh nali@" + partition_node_name + " mkdir -p /tmp/nali/maps/;"));
 			for(String related_node: element.getValue()) {
 				copy_cmd.addAll(cmdSetting("scp nali@" +  map_between_UMx_Machine.get("UM" + related_node) + ":/tmp/nali/maps/UM" + related_node + ".txt " 
 						+ "nali@" +  partition_node_name + ":/tmp/nali/maps/;"));
 			}
-	
-			processStarter(copy_cmd, "Copy /splits/UMx to /maps/  @Master", "Copy /splits/UMx to /maps/  @Master");
 
 		}
+
+		// System.out.println(copy_cmd.toString());
+		processStarter(copy_cmd, "Copy /splits/UMx to /maps/  @Master", "Copy /splits/UMx to /maps/  @Master");
 		
 		Map<String, List<String>> treeMap = new TreeMap<String, List<String>>(map_between_Key_UMx);
 		
 		// RUN SlaveImpl.shuffle/reduce
+		List<String> sr_cmd = new ArrayList<String>();
 		for(Entry<String, List<String>> element : treeMap.entrySet()) {
 						 
 			partitionIdx = (element.getKey().hashCode() & Integer.MAX_VALUE) % element.getValue().size();
 			partition_node_name = map_between_UMx_Machine.get("UM" + element.getValue().get(partitionIdx));
 			
-				
-			System.out.println("Shuffle/reduce @ "+ partition_node_name +" starts...");
-			
-			List<String> sr_cmd = new ArrayList<String>();
-			sr_cmd = cmdSetting("ssh nali@" + partition_node_name + " cd /tmp/nali/; java -jar Slave.jar 1 "
-							+ element.getKey()+ " " + SM_RM_Idx_cmpt);
+							
+			sr_cmd.addAll(cmdSetting("ssh nali@" + partition_node_name + " java -jar /tmp/nali/Slave.jar 1 "
+							+ element.getKey()+ " " + SM_RM_Idx_cmpt));
 			
 			map_between_RMx_Machine.put(Integer.toString(SM_RM_Idx_cmpt), partition_node_name);
 			
 			SM_RM_Idx_cmpt++;
 			
+			String tmp_data = "";
 			for(String related_node: element.getValue()) {
-				sr_cmd.add(" /tmp/nali/maps/" + "UM" + related_node+ ".txt");
+				tmp_data += "/tmp/nali/maps/" + "UM" + related_node+ ".txt ";
 			}		
+			sr_cmd.addAll(cmdSetting(tmp_data.substring(0, tmp_data.length()-1)+";"));
 			
-			processStarter(sr_cmd, "Shuffle/reduce @Slave " + partition_node_name, "Shuffle/reduce  @Slave " + partition_node_name);
-			
+			// System.out.println("Shuffle/reduce @ "+ partition_node_name +" starts... "+sr_cmd.toString());
 	    }
-		 
+		
+		processStarter(sr_cmd, "Shuffle/reduce @Slave ", "Shuffle/reduce  @Slave ");
+		
+		System.out.println("ShufflingReducing finish! ");
 	}
 	
 	public static void merge() throws IOException {
+		System.out.println("Final merge starts...");	
+		
 		// Final step: do the summary! 
 		List<String> write_data = new ArrayList<String>();
 		
+		List<String> sum_cmd = new ArrayList<String>();
 		for(int i=0; i<SM_RM_Idx_cmpt; i++) {
+			// System.out.println("i: " +i);
 			
-			List<String> sum_cmd = new ArrayList<String>();
 			sum_cmd = cmdSetting("scp nali@" + map_between_RMx_Machine.get(Integer.toString(i)) 
 							+ ":/tmp/nali/maps/RM" + i + ".txt .");	
 			
-			processStarter(sum_cmd, "FinCopy @Master", "FinCopy @Master");
-				
+			// System.out.println(sum_cmd);
+			
 			try {
 				byte[] row_data = Files.readAllBytes(Paths.get("RM"+i+".txt"));
 				String data = new String(row_data);		
@@ -240,7 +249,8 @@ public class Master {
 			}
 			
 		}
-		
+		processStarter(sum_cmd, "FinCopy @Master", "FinCopy @Master");
+
 		System.out.println("Final merge success! ");	
 	}
 	
@@ -251,11 +261,12 @@ public class Master {
 		InputStream ErrStream = p.getErrorStream();
 		BufferedReader ErrReader = new BufferedReader(new InputStreamReader(ErrStream));
 
-		String line = null;
+		String line;
 		
 		if ((line = ErrReader.readLine())!= null ) 
-			System.err.println(ErrMessage + " - Error: " + line + "\n"+cmd);
-		else System.out.println(NormMessage + " - Success !: " + cmd);	
+			System.err.println(ErrMessage + " - Error: " + line + "\n"); // +cmd);
+		// else System.out.println(NormMessage + " - Success !: " + cmd);
+
 	}
 	
 	public static List<String> cmdSetting(String inputCmd) {
