@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -22,40 +23,70 @@ public class Slave {
 			SlaveImpl.show_map_between_Key_UMx();
 			
 		} else if (args[0].equals("1")) {
-						
+					
+			List<String> key_list = new ArrayList<String>();
+			int i = 2;
+			while (!args[i].equals("SPLITS_SIGNAL")) {
+				key_list.add(args[i]);
+				System.out.println(args[i]);
+				i++;
+			}
+			
 			List<String> args_list = new ArrayList<String>();
 			
-			for(int i=3; i<args.length; i++) {
-				args_list.add(args[i]);
+			for(int j=i+1; j<args.length; j++) {
+				args_list.add(args[j]);
+				System.out.println(args[j]);
+			}	
+			
+			for(String key: key_list) {
+				SlaveImpl.shuffle(key, args_list, args[1]);
 			}
-						
-			SlaveImpl.shuffle(args[1], args_list, Integer.parseInt(args[2]));
-			SlaveImpl.reduce(args[1],  Integer.parseInt(args[2]));
+			
+			SlaveImpl.reduce(args[1]);
 		}		
 	}
 	
-	public void reduce(String key, int InputNameIdx) {
+	public void reduce(String InputNameIdx) {
 		String data = null;
 		
+		String tmp = null;
+		int cmpt = 0;
+		
+		List<String> write_data = new ArrayList<String>();
+
 		try {
 			byte[] row_data = Files.readAllBytes(Paths.get("/tmp/nali/maps/SM"+InputNameIdx+".txt"));
-			data = new String(row_data);				
+			data = new String(row_data);
+			String one = data.split("\n| ")[1];
+			for (String str: data.split("\n| ")) {
+				
+				System.out.println("str: " +str + ", tmp:" +tmp + ", cmpt: " + cmpt+ ", one.equals(str): " + one.equals(str));
+				
+				if (!one.equals(str)) {
+					if (!str.equals(tmp)) {
+						if (tmp != null) {
+							write_data.add(tmp+" "+cmpt);
+							cmpt = 0;
+						} 
+						tmp = str;
+					} 
+				} else cmpt++;
+			}
+			write_data.add(tmp+" "+cmpt);
 		} catch (IOException e) {
 			System.out.println(e);
 		}	
 		
-		String[] lines = data.split("\r\n|\r|\n");
-		List<String> write_data = new ArrayList<String>();
-		write_data.add(key + " " + Integer.toString(lines.length));
-		
+		// System.out.println(write_data);
 		try {
-			Files.write(Paths.get("/tmp/nali/maps/RM"+InputNameIdx + ".txt"), write_data, Charset.forName("UTF-8"));
+			Files.write(Paths.get("/tmp/nali/maps/RM"+InputNameIdx + ".txt"), write_data, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
 	}
 	
-	public void shuffle(String key, List<String> args_list, int OutputNameIdx) {
+	public void shuffle(String key, List<String> args_list, String OutputNameIdx) {
 		
 		List<String> write_data = new ArrayList<String>();
 		
@@ -64,7 +95,7 @@ public class Slave {
 			String data = null;
 			
 			try {
-				byte[] row_data = Files.readAllBytes(Paths.get(input_file_name));
+				byte[] row_data = Files.readAllBytes(Paths.get("/tmp/nali/maps/" + input_file_name));
 				data = new String(row_data);				
 			} catch (IOException e) {
 				System.out.println(e);
@@ -78,7 +109,7 @@ public class Slave {
 		}
 			    
 	    try {
-			Files.write(Paths.get("/tmp/nali/maps/SM"+OutputNameIdx+".txt"), write_data, Charset.forName("UTF-8"));
+			Files.write(Paths.get("/tmp/nali/maps/SM"+OutputNameIdx+".txt"), write_data, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
@@ -110,7 +141,7 @@ public class Slave {
 		}
 		 
 		try {
-			Files.write(Paths.get(output_file_name), write_data, Charset.forName("UTF-8"));
+			Files.write(Paths.get(output_file_name), write_data, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
